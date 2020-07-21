@@ -56,9 +56,7 @@ type
   TFilePermission = (fpOtherExec, fpOtherWrite, fpOtherRead,
                      fpGroupExec, fpGroupWrite, fpGroupRead,
                      fpUserExec, fpUserWrite, fpUserRead);
-  {$ifdef fpc}{$packset 4}{$endif}
   TFilePermissions = set of TFilePermission;
-  {$ifdef fpc}{$packset default}{$endif}
 
 const
    FPAllUser =  [fpUserRead, fpUserWrite, fpUserExec];
@@ -156,6 +154,8 @@ function CreateSshExec(Session: ISshSession): ISshExec;
 function AnsiToUnicode(P: PAnsiChar; CP: Word): string;
 procedure CheckLibSsh2Result(ResultCode: Integer; Session: ISshSession; const Op: string);
 
+function PermissionsSetToWord(Permissions:TFilePermissions):Word;
+
 implementation
 
 uses
@@ -178,6 +178,19 @@ resourcestring
   Msg_Disconnect = 'Bye';
   Msg_Password = 'Password: ';
   Msg_PrivateKeyInstruction = 'Private key password for "%s"';
+
+function PermissionsSetToWord(Permissions:TFilePermissions):Word;
+var
+  p: TFilePermission;
+begin
+  Result := 0;
+  for p in [fpOtherExec, fpOtherWrite, fpOtherRead,
+                     fpGroupExec, fpGroupWrite, fpGroupRead,
+                     fpUserExec, fpUserWrite, fpUserRead] do
+    if p in Permissions then
+      Result := Result or (1 shl ord(p));
+end;
+
 
 function AnsiToUnicode(P: PAnsiChar; CP: Word): string;
 Var
@@ -969,6 +982,7 @@ begin
   end;
 end;
 
+
 procedure TScp.Send(Stream: TStream; const RemoteFile: string;
   Permissions: TFilePermissions; MTime: TDateTime; ATime: TDateTime);
 var
@@ -985,7 +999,7 @@ begin
   FCancelled := False;
   Channel := libssh2_scp_send64(FSession.Addr,
     {$ifdef fpc}PChar(RemoteFile){$else}M.AsAnsi(RemoteFile, FSession.CodePage).ToPointer{$endif},
-    Integer(Word(Permissions)), Stream.Size, IfThen(MTime = 0, DateTimeToUnix(MTime)),
+    Integer(PermissionsSetToWord(Permissions)), Stream.Size, IfThen(MTime = 0, DateTimeToUnix(MTime)),
     IfThen(ATime = 0, 0, DateTimeToUnix(ATime)));
   if Channel = nil then
     CheckLibSsh2Result(libssh2_session_last_errno(FSession.Addr), FSession, 'libssh2_scp_send64');
@@ -1096,7 +1110,12 @@ begin
     end;
 
     if MemoryStream.Size > 0 then
+    begin
+      // terminate the string.
+      MemoryStream.WriteByte(0);
       Result := AnsiToUnicode(PAnsiChar(MemoryStream.Memory), Session.CodePage);
+    end;
+
   finally
     MemoryStream.Free;
   end;

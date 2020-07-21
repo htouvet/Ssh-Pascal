@@ -320,7 +320,7 @@ Var
 {$endif}
 begin
   Result := libssh2_sftp_mkdir(FSFtp,
-    {$ifdef fpc}PChar(ExpandTilde(Dir)){$else}M.AsAnsi(ExpandTilde(Dir),FSession.CodePage).ToPointer{$endif}, LongInt(Word(Permissions))) = 0;
+    {$ifdef fpc}PChar(ExpandTilde(Dir)){$else}M.AsAnsi(ExpandTilde(Dir),FSession.CodePage).ToPointer{$endif}, PermissionsSetToWord((Permissions))) = 0;
 end;
 
 function TSFtpClient.DeleteFile(const FileName: string): Boolean;
@@ -348,11 +348,12 @@ begin
   Result.FileName := AnsiToUnicode(AName, CodePage);
   Result.LongEntry := AnsiToUnicode(ALongEntry, CodePage);
   Result.ItemType := AttrsToFileType(Attribs);
-  {$ifdef fpc}
-  {$else}
   if TestBit(Attribs.Flags, LIBSSH2_SFTP_ATTR_PERMISSIONS) then
+    {$ifdef fpc}
+    Result.Permissions := [];
+    {$else}
     Result.Permissions := TFilePermissions(LongRec(Attribs.permissions).Lo and $01FF);
-  {$endif}
+    {$endif}
   if TestBit(Attribs.Flags, LIBSSH2_SFTP_ATTR_SIZE) then
     Result.FileSize := Attribs.FileSize;
   if TestBit(Attribs.Flags, LIBSSH2_SFTP_ATTR_UIDGID) then
@@ -652,7 +653,7 @@ begin
     Flags := Flags or LIBSSH2_FXF_EXCL; // ensure call fails if file exists
 
   FHandle := libssh2_sftp_open(FSFtp, {$ifdef fpc}PChar(RealPath(RemoteFile)){$else}M.AsAnsi(RealPath(RemoteFile), FSession.CodePage).ToPointer{$endif},
-    Flags, LongInt(Word(Permissions)));
+    Flags, PermissionsSetToWord(Permissions));
   if FHandle = nil then
     RaiseLastSftpError('libssh2_sftp_open');
 
