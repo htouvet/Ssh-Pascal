@@ -1,12 +1,19 @@
 ﻿program SshExec;
 
 {$APPTYPE CONSOLE}
+{$IFDEF FPC}
+  {$mode delphi}
+{$ENDIF}
 
 uses
+  {$ifndef fpc}
   Winapi.Winsock2,
   System.SysUtils,
   System.NetEncoding,
   System.Classes,
+  {$else}
+  WinSock2,SysUtils,Classes,
+  {$endif}
   libssh2 in '..\..\Source\libssh2.pas',
   SocketUtils in '..\..\Source\SocketUtils.pas',
   Ssh2Client in '..\..\Source\Ssh2Client.pas',
@@ -72,7 +79,9 @@ begin
 end;
 
 begin
+  {$ifndef fpc}
   ReportMemoryLeaksOnShutdown := True;
+  {$endif}
   try
     Main;
   except

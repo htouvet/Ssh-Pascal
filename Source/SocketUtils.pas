@@ -1,12 +1,19 @@
 unit SocketUtils;
+{$mode delphi}
 
 interface
 Uses
+  {$ifndef fpc}
   WinApi.Windows,
   Winapi.WinSock2,
   System.SysUtils,
   System.RTLConsts;
-
+  {$else}
+  Windows,
+  WinSock2,
+  SysUtils,
+  RtlConsts;
+  {$endif}
 type
 
 ESocketError = class(Exception);
@@ -22,6 +29,12 @@ end;
 
 function GetWinSock: IWinSock;
 procedure CheckSocketResult(ResultCode: Integer; const Op: string);
+
+{$ifdef fpc}
+function AtomicIncrement (var Target: longint) : longint; external name 'FPC_INTERLOCKEDINCREMENT';
+function AtomicDecrement (var Target: longint) : longint; external name 'FPC_INTERLOCKEDDECREMENT';
+{$endif}
+
 
 implementation
 
@@ -42,9 +55,9 @@ type
 {$WARN SYMBOL_PLATFORM OFF}
 function  GetAddrInfoW(NodeName: PWideChar; ServiceName: PWideChar;
   Hints: PaddrinfoW; var pResult: PaddrinfoW): Integer; stdcall;
-  external 'ws2_32.dll' name 'GetAddrInfoW' delayed;
+  external 'ws2_32.dll' name 'GetAddrInfoW'{$ifndef fpc} delayed{$endif};
 procedure FreeAddrInfoW(ai: PaddrinfoW); stdcall;
-  external 'ws2_32.dll' name 'FreeAddrInfoW' delayed;
+  external 'ws2_32.dll' name 'FreeAddrInfoW'{$ifndef fpc} delayed{$endif};
 {$WARN SYMBOL_PLATFORM ON}
 
 procedure StartWinSock;
@@ -161,7 +174,11 @@ begin
   Hints.ai_family := Ord(IpVersion);
   Hints.ai_socktype := SOCK_STREAM;
   Hints.ai_protocol := IPPROTO_TCP;
+  {$ifdef fpc}
+  CheckSocketResult(GetaddrinfoW(PWideChar(UTF8Decode(Host)), PWideChar(UTF8Decode(Port.ToString)), @Hints, AddrInfo), 'GetaddrinfoW');
+  {$else}
   CheckSocketResult(GetaddrinfoW(PChar(Host), PChar(Port.ToString), @Hints, AddrInfo), 'GetaddrinfoW');
+  {$endif}
 end;
 
 end.

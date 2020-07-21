@@ -10,11 +10,16 @@
 unit libssh2;
 
 // **zm ** translated to pascal
+{$mode delphi}
 
 interface
 
 uses
+  {$ifndef fpc}
   WinApi.Windows;
+  {$else}
+  Windows,Sockets;
+  {$endif}
 
 {+// Copyright (c) 2004-2009, Sara Golemon <sarag@libssh2.org> }
 {-* Copyright (c) 2009 by Daniel Stenberg }
@@ -63,6 +68,11 @@ type
   libssh2_int64_t = Int64;
   uint32_t = UInt;
   time_t = Int64;
+
+{$ifdef fpc}
+  psize_t = PSize;
+
+{$endif}
 
 const
 {+// We use underscore instead of dash when appending CVS in dev versions just }
@@ -1178,91 +1188,91 @@ implementation
 
 {$WARN SYMBOL_PLATFORM OFF}
 
-function libssh2_init; external libssh2_name delayed;
-procedure libssh2_exit; external libssh2_name delayed;
-function libssh2_session_init_ex; external libssh2_name delayed;
-function libssh2_session_abstract; external libssh2_name delayed;
-function libssh2_session_callback_set; external libssh2_name delayed;
-function libssh2_session_banner_get; external libssh2_name delayed;
-function libssh2_session_banner_set; external libssh2_name delayed;
-function libssh2_session_startup; external libssh2_name delayed;
-function libssh2_session_handshake; external libssh2_name delayed;
-function libssh2_session_disconnect_ex; external libssh2_name delayed;
-function libssh2_session_free; external libssh2_name delayed;
-function libssh2_hostkey_hash; external libssh2_name delayed;
-function libssh2_session_hostkey; external libssh2_name delayed;
-function libssh2_session_method_pref; external libssh2_name delayed;
-function libssh2_session_methods; external libssh2_name delayed;
-function libssh2_session_last_error; external libssh2_name delayed;
-function libssh2_session_last_errno; external libssh2_name delayed;
-function libssh2_session_block_directions; external libssh2_name delayed;
-function libssh2_session_flag; external libssh2_name delayed;
-function libssh2_userauth_list; external libssh2_name delayed;
-function libssh2_userauth_authenticated; external libssh2_name delayed;
-function libssh2_userauth_password_ex; external libssh2_name delayed;
-function libssh2_userauth_publickey_fromfile_ex; external libssh2_name delayed;
-function libssh2_userauth_hostbased_fromfile_ex; external libssh2_name delayed;
-function libssh2_userauth_keyboard_interactive_ex; external libssh2_name delayed;
-function libssh2_poll; external libssh2_name delayed;
-function libssh2_channel_open_ex; external libssh2_name delayed;
-function libssh2_channel_direct_tcpip_ex; external libssh2_name delayed;
-function libssh2_channel_forward_listen_ex; external libssh2_name delayed;
-function libssh2_channel_forward_cancel; external libssh2_name delayed;
-function libssh2_channel_forward_accept; external libssh2_name delayed;
-function libssh2_channel_setenv_ex; external libssh2_name delayed;
-function libssh2_channel_request_pty_ex; external libssh2_name delayed;
-function libssh2_channel_request_pty_size_ex; external libssh2_name delayed;
-function libssh2_channel_x11_req_ex; external libssh2_name delayed;
-function libssh2_channel_process_startup; external libssh2_name delayed;
-function libssh2_channel_read_ex; external libssh2_name delayed;
-function libssh2_poll_channel_read; external libssh2_name delayed;
-function libssh2_channel_window_read_ex; external libssh2_name delayed;
-function libssh2_channel_receive_window_adjust; external libssh2_name delayed;
-function libssh2_channel_receive_window_adjust2; external libssh2_name delayed;
-function libssh2_channel_write_ex; external libssh2_name delayed;
-function libssh2_channel_window_write_ex; external libssh2_name delayed;
-procedure libssh2_session_set_blocking; external libssh2_name delayed;
-function libssh2_session_get_blocking; external libssh2_name delayed;
-procedure libssh2_channel_set_blocking; external libssh2_name delayed;
-procedure libssh2_channel_handle_extended_data; external libssh2_name delayed;
-function libssh2_channel_handle_extended_data2; external libssh2_name delayed;
-function libssh2_channel_flush_ex; external libssh2_name delayed;
-function libssh2_channel_get_exit_status; external libssh2_name delayed;
-function libssh2_channel_get_exit_signal; external libssh2_name delayed;
-function libssh2_channel_send_eof; external libssh2_name delayed;
-function libssh2_channel_eof; external libssh2_name delayed;
-function libssh2_channel_wait_eof; external libssh2_name delayed;
-function libssh2_channel_close; external libssh2_name delayed;
-function libssh2_channel_wait_closed; external libssh2_name delayed;
-function libssh2_channel_free; external libssh2_name delayed;
-function libssh2_scp_recv2; external libssh2_name delayed;
-function libssh2_scp_send64; external libssh2_name delayed;
-function libssh2_base64_decode; external libssh2_name delayed;
-function libssh2_version; external libssh2_name delayed;
-function libssh2_trace; external libssh2_name delayed;
-function libssh2_knownhost_init; external libssh2_name delayed;
-function libssh2_knownhost_add; external libssh2_name delayed;
-function libssh2_knownhost_addc; external libssh2_name delayed;
-function libssh2_knownhost_check; external libssh2_name delayed;
-function libssh2_knownhost_checkp; external libssh2_name delayed;
-function libssh2_knownhost_del; external libssh2_name delayed;
-procedure libssh2_knownhost_free; external libssh2_name delayed;
-function libssh2_knownhost_readline; external libssh2_name delayed;
-function libssh2_knownhost_readfile; external libssh2_name delayed;
-function libssh2_knownhost_writeline; external libssh2_name delayed;
-function libssh2_knownhost_writefile; external libssh2_name delayed;
-function libssh2_knownhost_get; external libssh2_name delayed;
-function libssh2_agent_init; external libssh2_name delayed;
-function libssh2_agent_connect; external libssh2_name delayed;
-function libssh2_agent_list_identities; external libssh2_name delayed;
-function libssh2_agent_get_identity; external libssh2_name delayed;
-function libssh2_agent_userauth; external libssh2_name delayed;
-function libssh2_agent_disconnect; external libssh2_name delayed;
-procedure libssh2_agent_free; external libssh2_name delayed;
-procedure libssh2_keepalive_config; external libssh2_name delayed;
-function libssh2_keepalive_send; external libssh2_name delayed;
-//function libssh2_trace; external libssh2_name delayed;
-function libssh2_trace_sethandler; external libssh2_name delayed;
+function libssh2_init; external libssh2_name{$ifndef fpc} delayed{$endif};
+procedure libssh2_exit; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_session_init_ex; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_session_abstract; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_session_callback_set; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_session_banner_get; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_session_banner_set; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_session_startup; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_session_handshake; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_session_disconnect_ex; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_session_free; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_hostkey_hash; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_session_hostkey; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_session_method_pref; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_session_methods; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_session_last_error; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_session_last_errno; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_session_block_directions; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_session_flag; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_userauth_list; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_userauth_authenticated; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_userauth_password_ex; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_userauth_publickey_fromfile_ex; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_userauth_hostbased_fromfile_ex; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_userauth_keyboard_interactive_ex; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_poll; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_channel_open_ex; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_channel_direct_tcpip_ex; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_channel_forward_listen_ex; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_channel_forward_cancel; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_channel_forward_accept; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_channel_setenv_ex; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_channel_request_pty_ex; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_channel_request_pty_size_ex; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_channel_x11_req_ex; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_channel_process_startup; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_channel_read_ex; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_poll_channel_read; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_channel_window_read_ex; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_channel_receive_window_adjust; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_channel_receive_window_adjust2; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_channel_write_ex; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_channel_window_write_ex; external libssh2_name{$ifndef fpc} delayed{$endif};
+procedure libssh2_session_set_blocking; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_session_get_blocking; external libssh2_name{$ifndef fpc} delayed{$endif};
+procedure libssh2_channel_set_blocking; external libssh2_name{$ifndef fpc} delayed{$endif};
+procedure libssh2_channel_handle_extended_data; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_channel_handle_extended_data2; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_channel_flush_ex; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_channel_get_exit_status; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_channel_get_exit_signal; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_channel_send_eof; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_channel_eof; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_channel_wait_eof; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_channel_close; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_channel_wait_closed; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_channel_free; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_scp_recv2; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_scp_send64; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_base64_decode; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_version; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_trace; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_knownhost_init; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_knownhost_add; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_knownhost_addc; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_knownhost_check; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_knownhost_checkp; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_knownhost_del; external libssh2_name{$ifndef fpc} delayed{$endif};
+procedure libssh2_knownhost_free; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_knownhost_readline; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_knownhost_readfile; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_knownhost_writeline; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_knownhost_writefile; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_knownhost_get; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_agent_init; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_agent_connect; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_agent_list_identities; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_agent_get_identity; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_agent_userauth; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_agent_disconnect; external libssh2_name{$ifndef fpc} delayed{$endif};
+procedure libssh2_agent_free; external libssh2_name{$ifndef fpc} delayed{$endif};
+procedure libssh2_keepalive_config; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_keepalive_send; external libssh2_name{$ifndef fpc} delayed{$endif};
+//function libssh2_trace; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_trace_sethandler; external libssh2_name{$ifndef fpc} delayed{$endif};
 
 function libssh2_session_init: PLIBSSH2_SESSION;
 begin

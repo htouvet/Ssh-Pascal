@@ -12,12 +12,23 @@ unit SftpClient;
 }
 
 interface
+{$IFDEF FPC}
+  {$mode delphi}
+{$ENDIF}
 
 Uses
+  {$ifdef fpc}
+  Windows,
+  SysUtils,
+  Classes,
+  Generics.Collections,
+  Sockets,
+  {$else}
   WinApi.Windows,
   System.SysUtils,
   System.Classes,
   System.Generics.Collections,
+  {$endif}
   libssh2,
   libssh2_sftp,
   Ssh2Client;
@@ -89,9 +100,15 @@ function CreateSftpClient(Session: ISshSession): ISftpClient;
 
 implementation
 Uses
+  {$ifdef fpc}
+  SysConst,
+  DateUtils,
+  Generics.Defaults
+  {$else}
   System.SysConst,
   System.DateUtils,
-  System.Generics.Defaults;
+  System.Generics.Defaults
+  {$endif};
 
 {$region Support stuff}
 resourcestring
@@ -121,6 +138,11 @@ resourcestring
   Err_LIBSSH2_UNKNOWN = 'Unknown error';
   Err_NotAFile = '"%s" is not a file';
   Err_SessionNotAuth = 'The session is not connected and authorised';
+
+  {$ifdef fpc}
+  SCannotCreateDir='Can not create directory';
+  {$endif}
+
 
 function SftpErrorMsg(ErrNo: ULong): string;
 begin
@@ -292,18 +314,23 @@ begin
 end;
 
 function TSFtpClient.CreateDir(const Dir: string; Permissions: TFilePermissions): Boolean;
+{$ifndef fpc}
 Var
   M: TMarshaller;
+{$endif}
 begin
   Result := libssh2_sftp_mkdir(FSFtp,
-    M.AsAnsi(ExpandTilde(Dir), FSession.CodePage).ToPointer, LongInt(Word(Permissions))) = 0;
+    {$ifdef fpc}PChar(ExpandTilde(Dir)){$else}M.AsAnsi(ExpandTilde(Dir),FSession.CodePage).ToPointer{$endif}, LongInt(Word(Permissions))) = 0;
 end;
 
 function TSFtpClient.DeleteFile(const FileName: string): Boolean;
+{$ifdef fpc}{$else}
 Var
   M: TMarshaller;
+{$endif}
+
 begin
-  Result := libssh2_sftp_unlink(FSFtp,  M.AsAnsi(ExpandTilde(FileName), FSession.CodePage).ToPointer) = 0;
+  Result := libssh2_sftp_unlink(FSFtp,{$ifdef fpc}PChar(ExpandTilde(FileName)){$else}M.AsAnsi(ExpandTilde(FileName), FSession.CodePage).ToPointer{$endif}  ) = 0;
 end;
 
 destructor TSFtpClient.Destroy;
@@ -321,8 +348,11 @@ begin
   Result.FileName := AnsiToUnicode(AName, CodePage);
   Result.LongEntry := AnsiToUnicode(ALongEntry, CodePage);
   Result.ItemType := AttrsToFileType(Attribs);
+  {$ifdef fpc}
+  {$else}
   if TestBit(Attribs.Flags, LIBSSH2_SFTP_ATTR_PERMISSIONS) then
     Result.Permissions := TFilePermissions(LongRec(Attribs.permissions).Lo and $01FF);
+  {$endif}
   if TestBit(Attribs.Flags, LIBSSH2_SFTP_ATTR_SIZE) then
     Result.FileSize := Attribs.FileSize;
   if TestBit(Attribs.Flags, LIBSSH2_SFTP_ATTR_UIDGID) then
@@ -347,18 +377,21 @@ var
   List: TList<TSFTPItem>;
   Attribs: LIBSSH2_SFTP_ATTRIBUTES;
   Count: Integer;
-  M: TMarshaller;
+  {$ifdef fpc}{$else}M: TMarshaller;{$endif}
+
 begin
-  DirHandle := libssh2_sftp_opendir(FSFtp, M.AsAnsi(RealPath(Dir),
-    FSession.CodePage).ToPointer);
+  DirHandle := libssh2_sftp_opendir(FSFtp, {$ifdef fpc}PChar(RealPath(Dir)){$else}M.AsAnsi(RealPath(Dir),FSession.CodePage).ToPointer{$endif});
   if DirHandle = nil then
     RaiseLastSFTPError('libssh2_sftp_opendir');
-
+  {$ifdef fpc}
+  List := TList<TSFTPItem>.Create();
+  {$else}
   List := TList<TSFTPItem>.Create(TDelegatedComparer<TSFTPItem>.Create(
     function(const Left, Right: TSFTPItem): Integer
     begin
       Result := AnsiCompareStr(Left.FileName, Right.FileName);
     end));
+  {$endif}
   try
     FCancelled := False;
     repeat
@@ -400,6 +433,15 @@ begin
     Result := S;
 end;
 
+function CharSetToString(ACharSet: TSysCharSet):String;
+var
+  c: AnsiChar;
+begin
+  result := '';
+  for c in ACharSet do
+    Result := Result+c;
+end;
+
 function TSFtpClient.ExtractFilePath(const FileName: string): string;
 var
   I: Integer;
@@ -409,7 +451,7 @@ begin
   if FWindowsHost then
     Delims := Delims +  [DriveDelim];
 
-  I := FileName.LastDelimiter(Delims);
+  I := FileName.LastDelimiter(CharSetToString(Delims));
   Result := Copy(FileName, 1, I + 1);
 end;
 
@@ -479,12 +521,16 @@ begin
 end;
 
 function TSFtpClient.CreateSymLink(const Link, Target: string): Boolean;
+{$ifdef fpc}
+{$else}
 Var
   M: TMarshaller;
+{$endif}
 begin
   Result :=
-    libssh2_sftp_symlink(FSFtp, M.AsAnsi(RealPath(Target), FSession.CodePage).ToPointer,
-    M.AsAnsi(ExpandTilde(Link), FSession.CodePage).ToPointer) = 0;
+    libssh2_sftp_symlink(FSFtp,
+    {$ifdef fpc}PChar(RealPath(Target)){$else}M.AsAnsi(RealPath(Target), FSession.CodePage).ToPointer{$endif},
+    {$ifdef fpc}PChar(ExpandTilde(Link)){$else}M.AsAnsi(ExpandTilde(Link), FSession.CodePage).ToPointer{$endif}) = 0;
 end;
 
 procedure TSFtpClient.Receive(const RemoteFile: string; Stream: TStream);
@@ -494,11 +540,11 @@ var
   FHandle: PLIBSSH2_SFTP_HANDLE;
   Buf: PAnsiChar;
   R, N: ssize_t;
-  M: TMarshaller;
+  {$ifdef fpc}{$else}M: TMarshaller;{$endif}
 begin
   FCancelled := False;
   CheckSftpResult(libssh2_sftp_stat(FSFtp,
-    M.AsAnsi(ExpandTilde(RemoteFile), FSession.CodePage).ToPointer, Attribs),
+    {$ifdef fpc}PChar(ExpandTilde(RemoteFile)){$else}M.AsAnsi(ExpandTilde(RemoteFile), FSession.CodePage).ToPointer{$endif} , Attribs),
     'libssh2_sftp_stat');
 
   if AttrsToFileType(Attribs) <> sitFile then
@@ -507,7 +553,7 @@ begin
   Assert(TestBit(Attribs.Flags, LIBSSH2_SFTP_ATTR_SIZE));
 
   FHandle := libssh2_sftp_open(FSftp,
-    M.AsAnsi(RealPath(RemoteFile), FSession.CodePage).ToPointer,
+    {$ifdef fpc}PChar(RealPath(RemoteFile)){$else}M.AsAnsi(ExpandTilde(RemoteFile), FSession.CodePage).ToPointer{$endif},
     LIBSSH2_FXF_READ, 0);
   if FHandle = nil then
     RaiseLastSftpError('libssh2_sftp_open');
@@ -546,10 +592,10 @@ const
   BUF_LEN = 4 * 1024;
 var
   Target: array [0 .. BUF_LEN - 1] of AnsiChar;
-  M: TMarshaller;
+  {$ifdef fpc}{$else}M: TMarshaller;{$endif}
 begin
   Result := '';
-  CheckSftpResult(libssh2_sftp_realpath(FSFtp, M.AsAnsi(ExpandTilde(Name), FSession.CodePage).ToPointer,
+  CheckSftpResult(libssh2_sftp_realpath(FSFtp, {$ifdef fpc}PChar(ExpandTilde(Name)){$else}M.AsAnsi(ExpandTilde(Name), FSession.CodePage).ToPointer{$endif},
     PAnsiChar(@Target), BUF_LEN), 'libssh2_sftp_realpath');
   Result := AnsiToUnicode(PAnsiChar(@Target), FSession.CodePage);
 end;
@@ -567,19 +613,24 @@ begin
 end;
 
 function TSFtpClient.RemoveDir(const Dir: string): Boolean;
+{$ifdef fpc}
+{$else}
 Var
   M: TMarshaller;
+{$endif}
 begin
-  Result := libssh2_sftp_rmdir(FSFtp, M.AsAnsi(ExpandTilde(Dir), FSession.CodePage).ToPointer) = 0;
+  Result := libssh2_sftp_rmdir(FSFtp, {$ifdef fpc}PChar(ExpandTilde(Dir)){$else}M.AsAnsi(ExpandTilde(Dir), FSession.CodePage).ToPointer{$endif}) = 0;
 end;
 
 function TSFtpClient.Rename(const OldName, NewName: string): Boolean;
+{$ifndef fpc}
 var
   M: TMarshaller;
+{$endif}
 begin
   Result := libssh2_sftp_rename(FSFtp,
-    M.AsAnsi(ExpandTilde(OldName), FSession.CodePage).ToPointer,
-    M.AsAnsi(ExpandTilde(NewName), FSession.CodePage).ToPointer) = 0;
+    {$ifdef fpc}PChar(ExpandTilde(OldName)){$else}M.AsAnsi(ExpandTilde(OldName), FSession.CodePage).ToPointer{$endif},
+    {$ifdef fpc}PChar(ExpandTilde(NewName)){$else}M.AsAnsi(ExpandTilde(NewName), FSession.CodePage).ToPointer{$endif}) = 0;
 end;
 
 procedure TSFtpClient.Send(Stream: TStream; const RemoteFile: string;
@@ -590,7 +641,8 @@ var
   FHandle: PLIBSSH2_SFTP_HANDLE;
   Buf, StartBuf: PAnsiChar;
   Transfered, Total: UInt64;
-  M: TMarshaller;
+  {$ifndef fpc}M: TMarshaller;{$endif}
+
 begin
   FCancelled := False;
   Flags := LIBSSH2_FXF_WRITE or LIBSSH2_FXF_CREAT;
@@ -599,7 +651,7 @@ begin
   else
     Flags := Flags or LIBSSH2_FXF_EXCL; // ensure call fails if file exists
 
-  FHandle := libssh2_sftp_open(FSFtp, M.AsAnsi(RealPath(RemoteFile), FSession.CodePage).ToPointer,
+  FHandle := libssh2_sftp_open(FSFtp, {$ifdef fpc}PChar(RealPath(RemoteFile)){$else}M.AsAnsi(RealPath(RemoteFile), FSession.CodePage).ToPointer{$endif},
     Flags, LongInt(Word(Permissions)));
   if FHandle = nil then
     RaiseLastSftpError('libssh2_sftp_open');
@@ -661,14 +713,14 @@ function TSFtpClient.SftpType(Name: string; FollowLink: Boolean): TSFTPItemType;
 var
   ReturnCode: integer;
   Attribs: LIBSSH2_SFTP_ATTRIBUTES;
-  M: TMarshaller;
+  {$ifndef fpc}M: TMarshaller;{$endif}
 begin
   if FollowLink then
     ReturnCode :=
-      libssh2_sftp_stat(FSFtp, M.AsAnsi(ExpandTilde(Name), FSession.CodePage).ToPointer, Attribs)
+      libssh2_sftp_stat(FSFtp, {$ifdef fpc}PChar(ExpandTilde(Name)){$else}M.AsAnsi(ExpandTilde(Name), FSession.CodePage).ToPointer{$endif}, Attribs)
   else
     ReturnCode :=
-      libssh2_sftp_lstat(FSFtp, M.AsAnsi(ExpandTilde(Name), FSession.CodePage).ToPointer, Attribs);
+      libssh2_sftp_lstat(FSFtp, {$ifdef fpc}PChar(ExpandTilde(Name)){$else}M.AsAnsi(ExpandTilde(Name), FSession.CodePage).ToPointer{$endif}, Attribs);
   CheckSftpResult(ReturnCode, 'SftpType');
   Result := AttrsToFileType(Attribs);
 end;

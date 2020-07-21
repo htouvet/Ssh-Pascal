@@ -9,12 +9,22 @@
   * }
 unit libssh2_sftp;
 
+{$IFDEF FPC}
+  {$mode delphi}
+{$ENDIF}
+
 // **zm ** translated to pascal
 
 interface
 
+
 uses
+  {$ifdef fpc}
+  Windows,
+  Sockets,
+  {$else}
   WinApi.Windows,
+  {$endif}
   libssh2;
 
 {+// Copyright (c) 2004-2008, Sara Golemon <sarag@libssh2.org> }
@@ -214,13 +224,14 @@ const
   LIBSSH2SFTP_EAGAIN = LIBSSH2_ERROR_EAGAIN;
 {+// SFTP API*/ }
 
-function libssh2_sftp_init(session: PLIBSSH2_SESSION): PLIBSSH2_SFTP; cdecl;
 
-function libssh2_sftp_shutdown(sftp: PLIBSSH2_SFTP): Integer; cdecl;
+function libssh2_sftp_init(session: PLIBSSH2_SESSION): PLIBSSH2_SFTP; cdecl; {$ifdef fpc}external libssh2_name;{$endif}
 
-function libssh2_sftp_last_error(sftp: PLIBSSH2_SFTP): ULong; cdecl;
+function libssh2_sftp_shutdown(sftp: PLIBSSH2_SFTP): Integer; cdecl; {$ifdef fpc}external libssh2_name;{$endif}
 
-function libssh2_sftp_get_channel(sftp: PLIBSSH2_SFTP):PLIBSSH2_CHANNEL; cdecl;
+function libssh2_sftp_last_error(sftp: PLIBSSH2_SFTP): ULong; cdecl;{$ifdef fpc}external libssh2_name;{$endif}
+
+function libssh2_sftp_get_channel(sftp: PLIBSSH2_SFTP):PLIBSSH2_CHANNEL; cdecl;{$ifdef fpc}external libssh2_name;{$endif}
 
 {+// File / Directory Ops*/ }
 
@@ -229,7 +240,7 @@ function libssh2_sftp_open_ex(sftp: PLIBSSH2_SFTP;
                               filename_len: UInt;
                               flags: ULong;
                               mode: LongInt;
-                              open_type: Integer): PLIBSSH2_SFTP_HANDLE; cdecl;
+                              open_type: Integer): PLIBSSH2_SFTP_HANDLE; cdecl;{$ifdef fpc}external libssh2_name;{$endif}
 
 function libssh2_sftp_open(sftp: PLIBSSH2_SFTP;
                            const filename: PAnsiChar;
@@ -241,14 +252,14 @@ function libssh2_sftp_opendir(sftp: PLIBSSH2_SFTP;
 
 function libssh2_sftp_read(handle: PLIBSSH2_SFTP_HANDLE;
                            buffer: PAnsiChar;
-                           buffer_maxlen: size_t): ssize_t; cdecl;
+                           buffer_maxlen: size_t): ssize_t; cdecl;{$ifdef fpc}external libssh2_name;{$endif}
 
 function libssh2_sftp_readdir_ex(handle: PLIBSSH2_SFTP_HANDLE;
                                  buffer: PAnsiChar;
                                  buffer_maxlen: size_t;
                                  longentry: PAnsiChar;
                                  longentry_maxlen: size_t;
-                                 attrs: PLIBSSH2_SFTP_ATTRIBUTES): Integer; cdecl;
+                                 attrs: PLIBSSH2_SFTP_ATTRIBUTES): Integer; cdecl;{$ifdef fpc}external libssh2_name;{$endif}
 
 function libssh2_sftp_readdir(handle: PLIBSSH2_SFTP_HANDLE;
                               buffer: PAnsiChar;
@@ -256,29 +267,29 @@ function libssh2_sftp_readdir(handle: PLIBSSH2_SFTP_HANDLE;
 
 function libssh2_sftp_write(handle: PLIBSSH2_SFTP_HANDLE;
                             const buffer: PAnsiChar;
-                            count: size_t): ssize_t; cdecl;
+                            count: size_t): ssize_t; cdecl;{$ifdef fpc}external libssh2_name;{$endif}
 
-function libssh2_sftp_close_handle(handle: PLIBSSH2_SFTP_HANDLE): Integer; cdecl;
+function libssh2_sftp_close_handle(handle: PLIBSSH2_SFTP_HANDLE): Integer; cdecl;{$ifdef fpc}external libssh2_name;{$endif}
 
 function libssh2_sftp_close(handle: PLIBSSH2_SFTP_HANDLE): Integer; inline;
 
 function libssh2_sftp_closedir(handle: PLIBSSH2_SFTP_HANDLE): Integer; inline;
 
 procedure libssh2_sftp_seek(handle: PLIBSSH2_SFTP_HANDLE;
-                           offset: size_t); cdecl;
+                           offset: size_t); cdecl;{$ifdef fpc}external libssh2_name;{$endif}
 
 procedure libssh2_sftp_seek64(handle: PLIBSSH2_SFTP_HANDLE;
-                             offset: LIBSSH2_UINT64_T); cdecl;
+                             offset: LIBSSH2_UINT64_T); cdecl;{$ifdef fpc}external libssh2_name;{$endif}
 
 procedure libssh2_sftp_rewind(handle: PLIBSSH2_SFTP_HANDLE); inline;
 
-function libssh2_sftp_tell(handle: PLIBSSH2_SFTP_HANDLE): UInt; cdecl;
+function libssh2_sftp_tell(handle: PLIBSSH2_SFTP_HANDLE): UInt; cdecl;{$ifdef fpc}external libssh2_name;{$endif}
 
-function libssh2_sftp_tell64(handle: PLIBSSH2_SFTP_HANDLE): UInt64; cdecl;
+function libssh2_sftp_tell64(handle: PLIBSSH2_SFTP_HANDLE): UInt64; cdecl;{$ifdef fpc}external libssh2_name;{$endif}
 
 function libssh2_sftp_fstat_ex(handle: PLIBSSH2_SFTP_HANDLE;
                                var attrs: LIBSSH2_SFTP_ATTRIBUTES;
-                               setstat: Integer): Integer; cdecl;
+                               setstat: Integer): Integer; cdecl;{$ifdef fpc}external libssh2_name;{$endif}
 
 function libssh2_sftp_fstat(handle: PLIBSSH2_SFTP_HANDLE;
                             var attrs: LIBSSH2_SFTP_ATTRIBUTES): Integer; inline;
@@ -293,7 +304,7 @@ function libssh2_sftp_rename_ex(sftp: PLIBSSH2_SFTP;
                                 srouce_filename_len: UInt;
                                 const dest_filename: PAnsiChar;
                                 dest_filename_len: UInt;
-                                flags: LongInt): Integer; cdecl;
+                                flags: LongInt): Integer; cdecl;{$ifdef fpc}external libssh2_name;{$endif}
 
 function libssh2_sftp_rename(sftp: PLIBSSH2_SFTP;
                              const source_filename: PAnsiChar;
@@ -301,23 +312,23 @@ function libssh2_sftp_rename(sftp: PLIBSSH2_SFTP;
 
 function libssh2_sftp_unlink_ex(sftp: PLIBSSH2_SFTP;
                                 const filename: PAnsiChar;
-                                filename_len: UInt): Integer; cdecl;
+                                filename_len: UInt): Integer; cdecl;{$ifdef fpc}external libssh2_name;{$endif}
 
 function libssh2_sftp_unlink(sftp: PLIBSSH2_SFTP;
                              const filename: PAnsiChar): Integer; inline;
 
 function libssh2_sftp_fstatvfs(handle: PLIBSSH2_SFTP_HANDLE;
-                                      var st: TLIBSSH2_SFTP_STATVFS): Integer; cdecl;
+                                      var st: TLIBSSH2_SFTP_STATVFS): Integer; cdecl;{$ifdef fpc}external libssh2_name;{$endif}
 
 function libssh2_sftp_statvfs(sftp: PLIBSSH2_SFTP;
                               const path: PAnsiChar;
                               path_len: size_t;
-                              var st: TLIBSSH2_SFTP_STATVFS): Integer; cdecl;
+                              var st: TLIBSSH2_SFTP_STATVFS): Integer; cdecl;{$ifdef fpc}external libssh2_name;{$endif}
 
 function libssh2_sftp_mkdir_ex(sftp: PLIBSSH2_SFTP;
                                const path: PAnsiChar;
                                path_len: UInt;
-                               mode: LongInt): Integer; cdecl;
+                               mode: LongInt): Integer; cdecl;{$ifdef fpc}external libssh2_name;{$endif}
 
 function libssh2_sftp_mkdir(sftp: PLIBSSH2_SFTP;
                             const path: PAnsiChar;
@@ -325,7 +336,7 @@ function libssh2_sftp_mkdir(sftp: PLIBSSH2_SFTP;
 
 function libssh2_sftp_rmdir_ex(sftp: PLIBSSH2_SFTP;
                                const path: PAnsiChar;
-                               path_len: UInt): Integer; cdecl;
+                               path_len: UInt): Integer; cdecl;{$ifdef fpc}external libssh2_name;{$endif}
 
 function libssh2_sftp_rmdir(sftp: PLIBSSH2_SFTP;
                             const path: PAnsiChar): Integer; inline;
@@ -334,7 +345,7 @@ function libssh2_sftp_stat_ex(sftp: PLIBSSH2_SFTP;
                               const path: PAnsiChar;
                               path_len: UInt;
                               stat_type: Integer;
-                              var attrs: LIBSSH2_SFTP_ATTRIBUTES): Integer; cdecl;
+                              var attrs: LIBSSH2_SFTP_ATTRIBUTES): Integer; cdecl;{$ifdef fpc}external libssh2_name;{$endif}
 
 function libssh2_sftp_stat(sftp: PLIBSSH2_SFTP;
                            const path: PAnsiChar;
@@ -353,7 +364,7 @@ function libssh2_sftp_symlink_ex(sftp: PLIBSSH2_SFTP;
                                  path_len: UInt;
                                  target: PAnsiChar;
                                  target_len: UInt;
-                                 link_type: Integer): Integer; cdecl;
+                                 link_type: Integer): Integer; cdecl;{$ifdef fpc}external libssh2_name;{$endif}
 
 function libssh2_sftp_symlink(sftp: PLIBSSH2_SFTP;
                               const orig: PAnsiChar;
@@ -373,29 +384,30 @@ implementation
 
 {$WARN SYMBOL_PLATFORM OFF} // W002
 
-function libssh2_sftp_init; external libssh2_name delayed;
-function libssh2_sftp_shutdown; external libssh2_name delayed;
-function libssh2_sftp_last_error; external libssh2_name delayed;
-function libssh2_sftp_get_channel; external libssh2_name delayed;
-function libssh2_sftp_open_ex; external libssh2_name delayed;
-function libssh2_sftp_read; external libssh2_name delayed;
-function libssh2_sftp_readdir_ex; external libssh2_name delayed;
-function libssh2_sftp_write; external libssh2_name delayed;
-function libssh2_sftp_close_handle; external libssh2_name delayed;
-procedure libssh2_sftp_seek; external libssh2_name delayed;
-procedure libssh2_sftp_seek64; external libssh2_name delayed;
-function libssh2_sftp_tell; external libssh2_name delayed;
-function libssh2_sftp_tell64; external libssh2_name delayed;
-function libssh2_sftp_fstat_ex; external libssh2_name delayed;
-function libssh2_sftp_rename_ex; external libssh2_name delayed;
-function libssh2_sftp_unlink_ex; external libssh2_name delayed;
-function libssh2_sftp_fstatvfs; external libssh2_name delayed;
-function libssh2_sftp_statvfs; external libssh2_name delayed;
-function libssh2_sftp_mkdir_ex; external libssh2_name delayed;
-function libssh2_sftp_rmdir_ex; external libssh2_name delayed;
-function libssh2_sftp_stat_ex; external libssh2_name delayed;
-function libssh2_sftp_symlink_ex; external libssh2_name delayed;
-
+{$ifndef fpc}
+function libssh2_sftp_init: PLIBSSH2_SFTP; cdecl; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_sftp_shutdown: Integer; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_sftp_last_error: ULong; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_sftp_get_channel: PLIBSSH2_CHANNEL; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_sftp_open_ex: PLIBSSH2_SFTP_HANDLE; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_sftp_read: ssize_t; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_sftp_readdir_ex: Integer; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_sftp_write: PLIBSSH2_SFTP_HANDLE; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_sftp_close_handle: PLIBSSH2_SFTP_HANDLE; external libssh2_name{$ifndef fpc} delayed{$endif};
+procedure libssh2_sftp_seek; external libssh2_name{$ifndef fpc} delayed{$endif};
+procedure libssh2_sftp_seek64; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_sftp_tell: PLIBSSH2_SFTP_HANDLE; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_sftp_tell64: PLIBSSH2_SFTP_HANDLE; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_sftp_fstat_ex: PLIBSSH2_SFTP_HANDLE; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_sftp_rename_ex: PLIBSSH2_SFTP_HANDLE; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_sftp_unlink_ex: PLIBSSH2_SFTP_HANDLE; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_sftp_fstatvfs: PLIBSSH2_SFTP_HANDLE; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_sftp_statvfs: PLIBSSH2_SFTP_HANDLE; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_sftp_mkdir_ex: PLIBSSH2_SFTP_HANDLE; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_sftp_rmdir_ex: PLIBSSH2_SFTP_HANDLE; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_sftp_stat_ex: PLIBSSH2_SFTP_HANDLE; external libssh2_name{$ifndef fpc} delayed{$endif};
+function libssh2_sftp_symlink_ex: PLIBSSH2_SFTP_HANDLE; external libssh2_name{$ifndef fpc} delayed{$endif};
+{$endif}
 function libssh2_sftp_open(sftp: PLIBSSH2_SFTP; const filename: PAnsiChar; flags: ULong; mode: LongInt): PLIBSSH2_SFTP_HANDLE;
 begin
   Result := libssh2_sftp_open_ex(sftp, filename, Length(filename), flags, mode, LIBSSH2_SFTP_OPENFILE);
